@@ -16,8 +16,8 @@ df["price_change"] = df["price"].diff()
 #cominciamo ora a creare mini segnali
 df["direction"] = df["price_change"].apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0)) #"applica la funzione (lambda) se, condizioni, return 1/-1/0" 
 
-df["exhaustion"] = (df["volume"] > 15) & (df["price_change"].abs() < 0.1)
+df["exhaustion"] = (df["volume"] > 15) & (df["price_change"].abs() < 0.1) #piccola def di assorbimento, tanto volume MA poco movimento (in val ass)
 
-signals = df[(df["volume"] > 15) | (df["price_change"].abs() > 0.25)]
+signals = df[(df["volume"] > 15) | (df["price_change"].abs() > 0.25)] #sotto insieme di dati interessanti, analizzo solo dati dove c'é volume oppure il prezzo si sta muovendo 
 
 print(signals)
