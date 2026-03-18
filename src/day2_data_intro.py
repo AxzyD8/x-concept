@@ -13,7 +13,7 @@ df["delta_seconds"] = df["timestamp"].diff().dt.total_seconds()  # quanti second
 df["price_change"] = df["price"].diff() #esercizio ChatGPT, "fai colonna con differenza prezzo"
 
 print(df[["timestamp", "event_id", "price", "mid", "spread", "delta_seconds"]]) #esercizio ChatGPT
-print(df)
+print(df) #stampa tutte le colonne
 print("\nTIPI DATI:")
 print(df.dtypes)
 print("\nDIMENSIONI:")
