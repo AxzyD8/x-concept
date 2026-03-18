@@ -1,0 +1,59 @@
+import pandas as pd
+
+#leggo i dati, converto la colonna del tempo in variabile temporale da semplice stringa e ordino 
+df = pd.read_csv("data/test_market_data.csv")
+df["timestamp"] = pd.to_datetime(df["timestamp"])
+df = df.sort_values("timestamp").reset_index(drop=True)
+
+#aggiungo colonne utili
+df["spread"] = df["ask"] - df["bid"]
+df["mid"] = (df["bid"] + df["ask"]) / 2
+df["price_change"] = df["price"].diff()
+df["mid_change"] = df["mid"].diff()
+df["event_id"] = range(len(df))
+df["delta_seconds"] = df["timestamp"].diff().dt.total_seconds()
+
+df["volume_change"] = df["volume"].diff()
+df["price_speed"] = df["price_change"] / df["delta_seconds"].replace(0, pd.NA)
+
+df["recent_low"] = df["price"].rolling(3).min()
+df["recent_low_prev"] = df["recent_low"].shift(1)
+df["dist_from_recent_low"] = df["price"] - df["recent_low_prev"]
+
+df["recent_high"] = df["price"].rolling(3).max()
+df["recent_high_prev"] = df["recent_high"].shift(1)
+df["dist_from_recent_high"] = df["price"] - df["recent_high_prev"]
+
+df["next_price"] = df["price"].shift(-1)
+df["price_2_ahead"] = df["price"].shift(-2)
+
+df["reclaim_strength"] = df["next_price"] - df["recent_low_prev"]
+df["hold_strength"] = df["price_2_ahead"] - df["recent_low_prev"]
+
+df["direction"] = df["price_change"].apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+
+df["sweep_down"] = df["price"] < df["recent_low_prev"]
+df["next_reclaim"] = df["next_price"] > df["recent_low_prev"]
+df["hold_2"] = df["price_2_ahead"] > df["recent_low_prev"]
+
+#sarà un candidato a reversal se, sweep, reclaim, forza e volume
+df["candidate_reversal"] = (
+    df["sweep_down"] &
+    df["next_reclaim"] &
+    df["hold_2"] &
+    (df["volume"] > 10)
+)
+
+print(df[[
+    "timestamp",
+    "price",
+    "volume",
+    "spread",
+    "price_change",
+    "volume_change",
+    "price_speed",
+    "dist_from_recent_low",
+    "reclaim_strength",
+    "hold_strength",
+    "candidate_reversal"
+]])
